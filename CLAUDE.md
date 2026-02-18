@@ -82,6 +82,7 @@
 - **TODO required**: write task list in `docs/todo.md` at work start (date + order + completion criteria)
 - **Mistake log**: record mistakes in `docs/mistakes.md` (situation/mistake/cause/fix/lesson)
 - **4 strategies**: Persist -> Select -> Summarize -> Decompose (details: `docs/guides/context-engineering.md`)
+- **Model strategy**: Use Opus for judgment, Sonnet for execution (details: `docs/guides/model-strategy.md`)
 - Check `docs/todo.md` and `docs/mistakes.md` at session start
 - Break large tasks into smaller ones, record in TODO, check off one by one
 - **Auto session resume**: at new session start, read these files and summarize current state:

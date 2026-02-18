@@ -16,6 +16,7 @@ Claude Code 프로젝트에 즉시 적용할 수 있는 컨텍스트 엔지니�
 | **문서** | `docs/todo.md` | 날짜+순서+완료기준 작업 추적 템플릿 |
 | **문서** | `docs/mistakes.md` | 오답노트 템플릿 |
 | **문서** | `docs/guides/context-engineering.md` | 4전략 가이드 (저장/골라주기/정리/나눠주기) |
+| **문서** | `docs/guides/model-strategy.md` | Opus vs Sonnet 사용 전략 가이드 |
 | **메모리** | `memory/MEMORY.md` | 세션 간 영속 메모리 템플릿 |
 
 ## 설치
