@@ -45,7 +45,7 @@
 - Cross-verify across multiple sources; state confidence level when low
 
 ### 9. State Management
-- Track progress with `progress.txt` for long tasks
+- Track progress with `docs/progress.md` for daily work reporting
 - Use git commits as checkpoints (enable rollback)
 - Never abandon work due to context limits - save state and continue
 - Save current state to memory/files before context window refreshes
@@ -81,11 +81,23 @@
 
 - **TODO required**: write task list in `docs/todo.md` at work start (date + order + completion criteria)
 - **Mistake log**: record mistakes in `docs/mistakes.md` (situation/mistake/cause/fix/lesson)
+- **Progress report**: update `docs/progress.md` at session end (details below)
 - **4 strategies**: Persist -> Select -> Summarize -> Decompose (details: `docs/guides/context-engineering.md`)
 - **Model strategy**: Use Opus for judgment, Sonnet for execution (details: `docs/guides/model-strategy.md`)
-- Check `docs/todo.md` and `docs/mistakes.md` at session start
+- Check `docs/todo.md`, `docs/mistakes.md`, and `docs/progress.md` at session start
 - Break large tasks into smaller ones, record in TODO, check off one by one
 - **Auto session resume**: at new session start, read these files and summarize current state:
-  - `docs/todo.md` (pending tasks), `docs/mistakes.md` (recent mistakes)
+  - `docs/progress.md` (latest daily progress), `docs/todo.md` (pending tasks), `docs/mistakes.md` (recent mistakes)
   - `git log --oneline -5`, `git status` (code state)
+  - Session history: `~/.claude/projects/*/` recent `.jsonl` files (for context recovery)
   - Format: last work -> pending items -> next step suggestion
+
+### Progress Report Rules
+
+- **When**: update `docs/progress.md` at every session end
+- **Format**: ✅ 완료 / 🚧 진행중 / 📌 해야할 일, grouped by module/area
+- **완료**: only actual deliverables (not setup chores or infrastructure)
+- **진행중**: currently running or partially done (include metrics if applicable)
+- **해야할 일**: next actionable items, concise
+- **Context recovery**: if current session context is unclear, read recent session `.jsonl` files from `~/.claude/projects/*/` to reconstruct what was done
+- Newest entry on top, one entry per day
