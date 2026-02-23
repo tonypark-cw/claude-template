@@ -60,6 +60,7 @@
 - Hard-to-reverse actions (file deletion, force push, DB drop) **require user confirmation**
 - Actions visible to others (PR, code push, messages) also need confirmation
 - Never use destructive actions as shortcuts to bypass obstacles
+- **DB 인프라 조작 금지**: DB 스키마/카탈로그 수정(CREATE/DROP/ALTER TABLE, UPDATE system catalogs, CREATE/DROP GRAPH, CREATE EXTENSION 등) 절대 불가. DB 인프라 이슈 발견 시 DB 관리자에게 요청할 SQL만 제공하고, 직접 실행하지 않음. 코드에서는 SELECT(읽기)만 허용.
 
 ## Project Context
 
