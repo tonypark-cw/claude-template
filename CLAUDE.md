@@ -62,6 +62,15 @@
 - Never use destructive actions as shortcuts to bypass obstacles
 - **DB 인프라 조작 금지**: DB 스키마/카탈로그 수정(CREATE/DROP/ALTER TABLE, UPDATE system catalogs, CREATE/DROP GRAPH, CREATE EXTENSION 등) 절대 불가. DB 인프라 이슈 발견 시 DB 관리자에게 요청할 SQL만 제공하고, 직접 실행하지 않음. 코드에서는 SELECT(읽기)만 허용.
 
+## Context Splitting
+
+Split domain-specific rules into `.claude/rules/*.md` files.
+CLAUDE.md stays compact (index only). See `docs/guides/context-splitting.md`.
+
+Example rules files in `.claude/rules/`:
+- `example-backend.md` — Backend API + DB patterns
+- `example-frontend.md` — Frontend component patterns
+
 ## Project Context
 
 - **Project**: [YOUR PROJECT NAME]
