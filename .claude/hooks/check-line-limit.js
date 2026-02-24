@@ -6,7 +6,7 @@ process.stdin.on('end', () => {
   try {
     const data = JSON.parse(input);
     const fp = data.tool_input?.file_path;
-    if (!fp || !fp.match(/\.(ts|js|tsx|jsx)$/)) process.exit(0);
+    if (!fp || !fp.match(/\.(ts|js|tsx|jsx|py)$/)) process.exit(0);
     const lines = fs.readFileSync(fp, 'utf8').split('\n').length;
     if (lines > 80) {
       process.stderr.write(
