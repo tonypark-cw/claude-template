@@ -40,7 +40,17 @@ cp -n "$SCRIPT_DIR/docs/todo.md" "$TARGET/docs/" 2>/dev/null && echo "  OK: docs
 cp -n "$SCRIPT_DIR/docs/mistakes.md" "$TARGET/docs/" 2>/dev/null && echo "  OK: docs/mistakes.md" || echo "  SKIP: mistakes.md exists"
 cp -n "$SCRIPT_DIR/docs/guides/context-engineering.md" "$TARGET/docs/guides/" 2>/dev/null && echo "  OK: context-engineering.md" || echo "  SKIP: context-engineering.md exists"
 
+# Copy templates/
+mkdir -p "$TARGET/templates/agent-team"
+if [ -d "$SCRIPT_DIR/templates/agent-team" ]; then
+  cp -rn "$SCRIPT_DIR/templates/agent-team/"* "$TARGET/templates/agent-team/" 2>/dev/null && echo "  OK: templates/agent-team" || echo "  SKIP: agent-team templates already exist"
+fi
+
+# Copy agent-team guide
+cp -n "$SCRIPT_DIR/docs/guides/agent-team.md" "$TARGET/docs/guides/" 2>/dev/null && echo "  OK: agent-team.md" || echo "  SKIP: agent-team.md exists"
+
 echo ""
 echo "Done! Next steps:"
 echo "  1. Edit $TARGET/CLAUDE.md - fill in Project Context section"
 echo "  2. Edit $TARGET/docs/todo.md - add your first tasks"
+echo "  3. Try agent team: bash $TARGET/templates/agent-team/run-agent-team.sh --help"
