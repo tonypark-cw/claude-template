@@ -1,6 +1,8 @@
 ---
 name: code-review
 description: Git diff 기반 코드 리뷰. 변경된 파일의 보안, 품질, 패턴, side effect를 검토하고 APPROVE/WARNING/BLOCK 판정. TRIGGER when user says "/review", "리뷰해줘", "검토해줘", "코드 리뷰", "review this", "check my changes".
+model: sonnet
+effort: high
 ---
 
 # Code Reviewer

@@ -4,6 +4,8 @@ description: Recover previous session state. Reads progress report, git log, TOD
 argument-hint: ""
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash
+model: sonnet
+effort: low
 ---
 
 # Session Resume (State Recovery)

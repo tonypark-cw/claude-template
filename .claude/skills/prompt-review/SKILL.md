@@ -4,6 +4,8 @@ description: Review prompts against Claude prompting best practices. Use when op
 argument-hint: "[prompt text or file path]"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep
+model: sonnet
+effort: medium
 ---
 
 # Prompt Review (Claude Best Practices)

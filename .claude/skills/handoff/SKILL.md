@@ -1,6 +1,8 @@
 ---
 name: handoff
 description: 세션/에이전트 간 컨텍스트 전달용 핸드오프 문서 생성. 현재 작업 상태를 최소한의 문서로 압축하여 다음 세션이나 서브에이전트가 바로 이어서 작업 가능. TRIGGER when user says "/handoff", "핸드오프", "인수인계", "세션 정리", "hand off", "session summary".
+model: sonnet
+effort: low
 ---
 
 # Handoff — 세션/에이전트 컨텍스트 전달

@@ -24,8 +24,11 @@ fi
 # Copy .claude/ directory
 mkdir -p "$TARGET/.claude/hooks"
 mkdir -p "$TARGET/.claude/skills"
+mkdir -p "$TARGET/.claude/agents"
+mkdir -p "$TARGET/.claude/context"
 cp -n "$SCRIPT_DIR/.claude/hooks/"*.js "$TARGET/.claude/hooks/" 2>/dev/null && echo "  OK: hooks" || echo "  SKIP: hooks already exist"
 cp -rn "$SCRIPT_DIR/.claude/skills/"* "$TARGET/.claude/skills/" 2>/dev/null && echo "  OK: skills" || echo "  SKIP: skills already exist"
+cp -n "$SCRIPT_DIR/.claude/agents/"*.md "$TARGET/.claude/agents/" 2>/dev/null && echo "  OK: agents" || echo "  SKIP: agents already exist"
 
 if [ ! -f "$TARGET/.claude/settings.local.json" ]; then
   cp "$SCRIPT_DIR/.claude/settings.local.json" "$TARGET/.claude/"

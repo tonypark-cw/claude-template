@@ -1,6 +1,8 @@
 ---
 name: qa-test
 description: 변경된 코드의 테스트/검증 실행. 프로젝트별 테스트 전략 자동 적용, API 엔드포인트 검증, 회귀 테스트. TRIGGER when user says "/qa", "테스트해봐", "검증해봐", "QA", "test this", "verify changes".
+model: sonnet
+effort: medium
 ---
 
 # QA Tester

@@ -1,6 +1,8 @@
 ---
 name: review-team
 description: 코드 리뷰어 + QA 테스터를 병렬 서브에이전트로 실행하여 종합 검토. TRIGGER when user says "/review-team", "전체 검토", "리뷰+테스트", "review and test", "full review".
+model: sonnet
+effort: medium
 ---
 
 # Review Team — 에이전트 팀 오케스트레이터

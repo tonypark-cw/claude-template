@@ -56,14 +56,41 @@
 - Skip unnecessary summaries after tool calls; move to next task
 - Clean up temporary files/scripts after work completion
 
-### 12. Auto Agent Team
-비단순 작업(3개+ 파일 변경, 멀티 프로젝트, 배포 포함)은 자동으로 에이전트 팀 구성:
-1. **탐색**: Explore 에이전트로 변경 범위 파악
-2. **구현**: 프로젝트별 서브에이전트 병렬 (각 프로젝트 CLAUDE.md만 참조)
-3. **검증**: code-review + qa-test 서브에이전트 병렬
-4. **핸드오프**: 작업 완료 시 `.claude/context/handoff.md` 자동 갱신
+### 12. Work Protocol
 
-### 13. Distributed Context
+**Explore first**: Before implementing, explore all related files. Trace caller/callee chains. Never assume "this one file is enough."
+
+**Multi-perspective analysis**: For non-trivial tasks, analyze from at least 2 perspectives.
+- architect agent: blast radius + design alternatives
+- researcher agent: external best practices (WebSearch)
+- For design decisions: validate with counter-arguments
+
+**Triple verification**: Always verify after implementation.
+1. Self-verify (imports/types/compatibility)
+2. 3+ files changed → suggest `/review`
+3. Before deploy/commit → suggest `/qa`
+
+**Knowledge accumulation**: Record failed approaches and resolved issues immediately. Update handoff before session end.
+
+**Parallel experiments**: When optimal approach is uncertain, try 2-3 approaches simultaneously via worktree. Compare results, adopt the best.
+
+### 13. Custom Agents (`.claude/agents/`)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| architect | opus/max | Design, blast radius analysis, cross-project dependencies |
+| deep-coder | opus/high | Thorough implementation with edge case coverage |
+| researcher | sonnet/high | External knowledge collection, benchmark research |
+| validator | sonnet/high | Multi-angle verification (no code modification) |
+
+### 14. Auto Agent Team
+비단순 작업(3개+ 파일 변경, 멀티 프로젝트, 배포 포함)은 자동으로 에이전트 팀 구성:
+1. **탐색**: architect 에이전트로 변경 범위 + 설계안
+2. **조사**: researcher 에이전트로 외부 최신 정보 (필요 시)
+3. **구현**: deep-coder 에이전트 (프로젝트별 병렬, 각 CLAUDE.md만 참조)
+4. **검증**: validator + code-review + qa-test 병렬
+5. **핸드오프**: `.claude/context/handoff.md` 자동 갱신
+
+### 15. Distributed Context
 - 서브에이전트에는 **해당 프로젝트의 CLAUDE.md 경로만** 전달 (전체 컨텍스트 주입 금지)
 - 세션 간 전달: `.claude/context/handoff.md` 사용 (20줄 이하)
 - 프로젝트별 상세는 lazy load (필요할 때만 Read)

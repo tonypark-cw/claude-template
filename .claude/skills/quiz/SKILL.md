@@ -4,6 +4,8 @@ description: Interactive oral quiz (10 questions) about your project's codebase 
 argument-hint: "[area] (e.g., auth, api, database, all)"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, AskUserQuestion
+model: sonnet
+effort: medium
 ---
 
 # Project Codebase Quiz
