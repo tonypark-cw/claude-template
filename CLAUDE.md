@@ -56,6 +56,18 @@
 - Skip unnecessary summaries after tool calls; move to next task
 - Clean up temporary files/scripts after work completion
 
+### 12. Auto Agent Team
+비단순 작업(3개+ 파일 변경, 멀티 프로젝트, 배포 포함)은 자동으로 에이전트 팀 구성:
+1. **탐색**: Explore 에이전트로 변경 범위 파악
+2. **구현**: 프로젝트별 서브에이전트 병렬 (각 프로젝트 CLAUDE.md만 참조)
+3. **검증**: code-review + qa-test 서브에이전트 병렬
+4. **핸드오프**: 작업 완료 시 `.claude/context/handoff.md` 자동 갱신
+
+### 13. Distributed Context
+- 서브에이전트에는 **해당 프로젝트의 CLAUDE.md 경로만** 전달 (전체 컨텍스트 주입 금지)
+- 세션 간 전달: `.claude/context/handoff.md` 사용 (20줄 이하)
+- 프로젝트별 상세는 lazy load (필요할 때만 Read)
+
 ### 11. Safety First
 - Hard-to-reverse actions (file deletion, force push, DB drop) **require user confirmation**
 - Actions visible to others (PR, code push, messages) also need confirmation
