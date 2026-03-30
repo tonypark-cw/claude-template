@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타임박싱 - 5분 블록 플래너</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent-dim: #1f6feb;
+    --green: #3fb950;
+    --green-dim: #238636;
+    --red: #f85149;
+    --yellow: #d29922;
+    --orange: #db6d28;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .header h1 { font-size: 24px; margin-bottom: 4px; }
+  .header h1 span { color: var(--accent); }
+  .header p { color: var(--text-dim); font-size: 13px; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+
+  .stat-card .label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+
+  .stat-card .value { font-size: 22px; font-weight: 700; }
+  .stat-card .value.accent { color: var(--accent); }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.yellow { color: var(--yellow); }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .toolbar .settings-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-right: auto;
+  }
+
+  .toolbar label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .toolbar input[type="number"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    width: 48px;
+    text-align: center;
+    outline: none;
+  }
+
+  .toolbar input:focus { border-color: var(--accent); }
+
+  .btn {
+    padding: 7px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--accent-dim); color: #fff; }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-success { background: var(--green-dim); color: #fff; }
+  .btn-success:hover { background: var(--green); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--text-dim); }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* Task chips (horizontal row above timeline) */
+  .task-chips {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    min-height: 28px;
+  }
+
+  .task-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: grab;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .task-chip:hover { opacity: 0.9; transform: scale(1.03); }
+
+  .task-chip .chip-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  .task-chip .chip-remove {
+    margin-left: 2px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 10px;
+  }
+
+  .task-chip .chip-remove:hover { opacity: 1; }
+
+  .chip-color-1 { background: rgba(88,166,255,0.2); color: #58a6ff; }
+  .chip-color-2 { background: rgba(63,185,80,0.2); color: #3fb950; }
+  .chip-color-3 { background: rgba(210,153,34,0.2); color: #d29922; }
+  .chip-color-4 { background: rgba(248,81,73,0.2); color: #f85149; }
+  .chip-color-5 { background: rgba(188,140,255,0.2); color: #bc8cff; }
+  .chip-color-6 { background: rgba(255,123,114,0.2); color: #ff7b72; }
+  .chip-color-7 { background: rgba(121,192,255,0.2); color: #79c0ff; }
+  .chip-color-8 { background: rgba(210,153,34,0.15); color: #bb8009; }
+
+  /* Timeline panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .timeline {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 75vh;
+    scrollbar-width: none;
+  }
+
+  .timeline::-webkit-scrollbar { display: none; }
+
+  .hour-row {
+    display: grid;
+    grid-template-columns: 36px repeat(12, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+    align-items: center;
+  }
+
+  .hour-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    padding-right: 4px;
+  }
+
+  .hour-row.current-hour .hour-label { color: var(--accent); }
+  .hour-row.past-hour .hour-label { color: #484f58; }
+
+  .time-block {
+    position: relative;
+    border-radius: 4px;
+    min-height: 34px;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .time-block:hover { transform: scale(1.05); z-index: 2; }
+
+  .time-block .block-content {
+    width: 100%; height: 100%; min-height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .time-block .block-content.empty {
+    border: 1px dashed var(--border);
+  }
+
+  .time-block .block-content.empty:hover {
+    border-color: var(--accent);
+    background: rgba(88,166,255,0.05);
+  }
+
+  .time-block .block-content.filled { }
+
+  .time-block .block-content.break-block {
+    background: rgba(219,109,40,0.25);
+  }
+
+  .time-block .time-label { display: none; }
+
+  /* 완료: 투명도 낮춤 + 대각선 줄무늬 */
+  .time-block.completed .block-content.filled {
+    opacity: 0.3;
+  }
+
+  .hour-row.current-hour {
+    background: rgba(88,166,255,0.05);
+    border-radius: 6px;
+    padding: 2px 0;
+  }
+
+  .time-block.current .block-content {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .time-block.past .block-content.empty { border-color: #21262d; }
+
+  .minute-header {
+    display: grid;
+    grid-template-columns: 36px repeat(12, 1fr);
+    gap: 2px;
+    margin-bottom: 6px;
+  }
+
+  .minute-header span {
+    font-size: 9px;
+    color: #484f58;
+    text-align: center;
+  }
+
+  /* Color palette */
+  .color-1 { background: rgba(88,166,255,0.3); border-left: 3px solid #58a6ff; }
+  .color-2 { background: rgba(63,185,80,0.3); border-left: 3px solid #3fb950; }
+  .color-3 { background: rgba(210,153,34,0.3); border-left: 3px solid #d29922; }
+  .color-4 { background: rgba(248,81,73,0.3); border-left: 3px solid #f85149; }
+  .color-5 { background: rgba(188,140,255,0.3); border-left: 3px solid #bc8cff; }
+  .color-6 { background: rgba(255,123,114,0.3); border-left: 3px solid #ff7b72; }
+  .color-7 { background: rgba(121,192,255,0.3); border-left: 3px solid #79c0ff; }
+  .color-8 { background: rgba(210,153,34,0.15); border-left: 3px solid #bb8009; }
+
+  .priority-high { background: var(--red); }
+  .priority-medium { background: var(--yellow); }
+  .priority-low { background: var(--green); }
+
+  /* Modals */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 340px;
+    max-width: 420px;
+  }
+
+  .modal h3 { margin-bottom: 16px; font-size: 16px; }
+
+  .modal-tasks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .modal-tasks::-webkit-scrollbar { display: none; }
+
+  .modal-tasks li {
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+  }
+
+  .modal-tasks li:hover {
+    border-color: var(--accent);
+    background: rgba(88,166,255,0.05);
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* Add-task modal form */
+  .add-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+
+  .add-form input, .add-form select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    width: 100%;
+  }
+
+  .add-form input:focus, .add-form select:focus { border-color: var(--accent); }
+
+  .add-form .form-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .add-form .form-row input[type="number"] { width: 70px; text-align: center; }
+  .add-form .form-row label { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+
+  /* Task list inside add-task modal */
+  .task-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .task-list::-webkit-scrollbar { display: none; }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .task-item .task-name { flex: 1; }
+
+  .task-item .task-blocks {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .task-item .task-actions { display: flex; gap: 4px; }
+
+  .task-item .btn-danger { padding: 2px 6px; font-size: 10px; }
+
+  /* Drag over */
+  .time-block.drag-over .block-content {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .time-block[draggable="true"] { cursor: grab; }
+  .time-block[draggable="true"]:active { cursor: grabbing; }
+
+  /* Notification */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 200;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+  }
+
+  .notification.show { transform: translateX(0); }
+
+  .notification.success {
+    background: var(--green-dim);
+    color: #fff;
+    border: 1px solid var(--green);
+  }
+
+  .notification.warning {
+    background: rgba(210,153,34,0.3);
+    color: var(--yellow);
+    border: 1px solid var(--yellow);
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1><span>타임박싱</span> 플래너</h1>
+    <p>일론 머스크의 5분 블록 기법</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="label">전체 블록</div>
+      <div class="value accent" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">배정됨</div>
+      <div class="value yellow" id="stat-assigned">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">완료</div>
+      <div class="value green" id="stat-done">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">진행률</div>
+      <div class="value green" id="stat-progress">0%</div>
+      <div class="progress-bar"><div class="fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">현재 시각</div>
+      <div class="value accent" id="stat-clock">--:--</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="settings-group">
+      <label>시작</label>
+      <input type="number" id="start-hour" value="8" min="0" max="23">
+      <label>시</label>
+      <input type="number" id="total-hours" value="18" min="1" max="24">
+      <label>시간</label>
+      <button class="btn btn-ghost" onclick="rebuildTimeline()">적용</button>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">+ 작업 추가</button>
+    <button class="btn btn-success" onclick="autoAssign()">자동 배정</button>
+    <button class="btn btn-ghost" onclick="addBreakBlocks()">휴식 추가</button>
+    <button class="btn btn-ghost" onclick="clearAllBreaks()">휴식 제거</button>
+    <button class="btn btn-ghost" onclick="scrollToNow()">현재 시각</button>
+    <button class="btn btn-ghost" onclick="loadExample()">예시</button>
+    <button class="btn btn-danger" onclick="clearAll()">전체 초기화</button>
+  </div>
+
+  <div class="task-chips" id="task-chips"></div>
+
+  <div class="panel">
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<!-- Assign Modal (click a time block) -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <h3><span id="modal-time"></span> — <span id="modal-title">작업 배정</span></h3>
+    <!-- 현재 작업 정보 (할당된 셀 클릭 시) -->
+    <div id="modal-current" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px" id="modal-current-name"></div>
+      <div style="font-size:12px;color:var(--text-dim)" id="modal-current-info"></div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-success" onclick="toggleDoneFromModal()" id="modal-done-btn" style="font-size:11px">완료 토글</button>
+        <button class="btn btn-ghost" onclick="clearBlock()" style="font-size:11px">비우기</button>
+      </div>
+    </div>
+    <!-- 작업 목록 (배정용) -->
+    <div id="modal-assign-section">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px" id="modal-assign-label">작업 선택</div>
+      <ul class="modal-tasks" id="modal-tasks"></ul>
+      <div style="border-top:1px solid var(--border);margin:12px 0 10px;padding-top:10px">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">새 작업 만들기</div>
+        <div class="add-form" style="margin-bottom:0">
+          <div class="form-row">
+            <input type="text" id="modal-task-name" placeholder="작업명..." style="flex:1" onkeydown="if(event.key==='Enter')addAndAssign()">
+            <input type="number" id="modal-task-blocks" value="1" min="1" max="50" style="width:50px;text-align:center">
+            <select id="modal-task-priority" style="width:auto">
+              <option value="high">높음</option>
+              <option value="medium" selected>보통</option>
+              <option value="low">낮음</option>
+            </select>
+            <button class="btn btn-primary" onclick="addAndAssign()">추가+배정</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="assignBreak()">휴식</button>
+      <button class="btn btn-danger" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="add-modal-overlay" onclick="closeAddModal(event)">
+  <div class="modal">
+    <h3>작업 추가</h3>
+    <div class="add-form">
+      <input type="text" id="task-name" placeholder="작업명 입력..." onkeydown="if(event.key==='Enter')addTask()">
+      <div class="form-row">
+        <input type="number" id="task-blocks" value="1" min="1" max="50">
+        <label>블록 (x5분)</label>
+        <select id="task-priority">
+          <option value="high">높음</option>
+          <option value="medium" selected>보통</option>
+          <option value="low">낮음</option>
+        </select>
+        <button class="btn btn-primary" onclick="addTask()">추가</button>
+      </div>
+    </div>
+    <ul class="task-list" id="task-list"></ul>
+    <div class="modal-footer" style="margin-top:12px">
+      <button class="btn btn-ghost" onclick="closeAddModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+  let tasks = [];
+  let timeline = [];
+  let taskIdCounter = 0;
+  let colorCounter = 0;
+  const COLORS = 8;
+  let selectedBlockIndex = null;
+
+  function init() {
+    loadState();
+    if (timeline.length === 0) rebuildTimeline();
+    else renderTimeline();
+    renderTasks();
+    renderChips();
+    updateStats();
+    startClock();
+    setInterval(updateCurrentBlock, 30000);
+    updateCurrentBlock();
+  }
+
+  // ---- Timeline ----
+  function rebuildTimeline() {
+    const startHour = parseInt(document.getElementById('start-hour').value);
+    const totalHours = parseInt(document.getElementById('total-hours').value);
+    const total = totalHours * 12;
+
+    const oldMap = {};
+    timeline.forEach(b => {
+      if (b.taskId !== null) oldMap[b.time] = { taskId: b.taskId, done: b.done };
+    });
+
+    timeline = [];
+    for (let i = 0; i < total; i++) {
+      const mins = i * 5;
+      const h = startHour + Math.floor(mins / 60);
+      const m = mins % 60;
+      const hh = String(h % 24).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      const time = `${hh}:${mm}`;
+      const old = oldMap[time];
+      timeline.push({ time, taskId: old ? old.taskId : null, done: old ? old.done : false });
+    }
+    renderTimeline();
+    updateStats();
+    saveState();
+  }
+
+  function renderTimeline() {
+    const container = document.getElementById('timeline');
+    const now = getCurrentTime();
+
+    let html = '<div class="minute-header"><span></span>';
+    for (let m = 0; m < 60; m += 5) html += `<span>:${String(m).padStart(2, '0')}</span>`;
+    html += '</div>';
+
+    for (let h = 0; h < timeline.length; h += 12) {
+      const hourBlocks = timeline.slice(h, h + 12);
+      if (!hourBlocks.length) break;
+
+      const isPastHour = hourBlocks.every(b => b.time < now);
+      const isCurrentHour = hourBlocks.some((b, bi) => {
+        const next = (h + bi + 1 < timeline.length) ? timeline[h + bi + 1].time : '99:99';
+        return b.time <= now && next > now;
+      });
+
+      let rowCls = 'hour-row';
+      if (isPastHour) rowCls += ' past-hour';
+      if (isCurrentHour) rowCls += ' current-hour';
+
+      html += `<div class="${rowCls}">`;
+      html += `<span class="hour-label">${hourBlocks[0].time.split(':')[0]}시</span>`;
+
+      hourBlocks.forEach((block, bi) => {
+        const i = h + bi;
+        const task = block.taskId !== null ? tasks.find(t => t.id === block.taskId) : null;
+        const isBreak = block.taskId === 'break';
+        const isPast = block.time < now;
+        const isCurrent = (() => {
+          const next = (i + 1 < timeline.length) ? timeline[i + 1].time : '99:99';
+          return block.time <= now && next > now;
+        })();
+
+        let cls = 'time-block';
+        if (isPast) cls += ' past';
+        if (isCurrent) cls += ' current';
+        if (block.done) cls += ' completed';
+
+        let contentCls = 'block-content';
+        let content = '', titleText = block.time;
+        if (isBreak) {
+          contentCls += ' break-block'; titleText += ' 휴식';
+        } else if (task) {
+          contentCls += ` filled color-${task.color}`; titleText += ` ${task.name}`;
+          if (block.done) titleText += ' (완료)';
+        } else {
+          contentCls += ' empty';
+        }
+
+        const draggable = (task || isBreak) ? 'draggable="true"' : '';
+        const cellDrag = (task || isBreak) ? `ondragstart="onCellDragStart(event,${i})"` : '';
+
+        html += `<div class="${cls}" data-index="${i}" title="${titleText}" ${draggable} ${cellDrag}
+          ondragover="onDragOver(event,${i})" ondragleave="onDragLeave(event,${i})" ondrop="onDrop(event,${i})">
+          <span class="time-label">${block.time}</span>
+          <div class="${contentCls}" onclick="openModal(${i})"></div>
+        </div>`;
+      });
+
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function getCurrentTime() {
+    const now = new Date();
+    return String(now.getHours()).padStart(2, '0') + ':' + String(Math.floor(now.getMinutes() / 5) * 5).padStart(2, '0');
+  }
+
+  function scrollToNow() {
+    const now = getCurrentTime();
+    const idx = timeline.findIndex(b => b.time >= now);
+    if (idx >= 0) {
+      const el = document.querySelector(`.time-block[data-index="${idx}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function updateCurrentBlock() { renderTimeline(); }
+
+  function toggleDone(idx) {
+    timeline[idx].done = !timeline[idx].done;
+    renderTimeline(); updateStats(); saveState();
+  }
+
+  // ---- Tasks ----
+  function addTask() {
+    const nameEl = document.getElementById('task-name');
+    const blocksEl = document.getElementById('task-blocks');
+    const priorityEl = document.getElementById('task-priority');
+    const name = nameEl.value.trim();
+    if (!name) return;
+
+    colorCounter = (colorCounter % COLORS) + 1;
+    tasks.push({ id: ++taskIdCounter, name, blocks: parseInt(blocksEl.value) || 1, priority: priorityEl.value, color: colorCounter });
+
+    nameEl.value = '';
+    blocksEl.value = 1;
+    renderTasks(); renderChips(); updateStats(); saveState();
+    notify(`"${name}" 추가됨`, 'success');
+  }
+
+  function removeTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    timeline.forEach(b => { if (b.taskId === id) { b.taskId = null; b.done = false; } });
+    renderTasks(); renderChips(); renderTimeline(); updateStats(); saveState();
+  }
+
+  function renderTasks() {
+    const list = document.getElementById('task-list');
+    if (!tasks.length) {
+      list.innerHTML = '<li style="color:var(--text-dim);font-size:12px;padding:12px;text-align:center">작업을 추가해서 하루를 계획하세요</li>';
+      return;
+    }
+    const counts = {};
+    timeline.forEach(b => { if (b.taskId !== null && b.taskId !== 'break') counts[b.taskId] = (counts[b.taskId] || 0) + 1; });
+
+    list.innerHTML = tasks.map(t => {
+      const a = counts[t.id] || 0;
+      return `<li class="task-item">
+        <div class="priority-dot priority-${t.priority}" style="width:6px;height:6px;border-radius:50%;flex-shrink:0"></div>
+        <span class="task-name">${t.name}</span>
+        <span class="task-blocks">${t.blocks}블록 (${t.blocks * 5}분)${a > 0 ? ` | ${a}개 배정` : ''}</span>
+        <div class="task-actions"><button class="btn-danger" onclick="removeTask(${t.id})">x</button></div>
+      </li>`;
+    }).join('');
+  }
+
+  function renderChips() {
+    const el = document.getElementById('task-chips');
+    el.innerHTML = tasks.map(t =>
+      `<div class="task-chip chip-color-${t.color}" draggable="true" ondragstart="onDragStart(event,${t.id})">
+        <div class="chip-dot priority-${t.priority}"></div>
+        ${t.name}
+        <span class="chip-remove" onclick="removeTask(${t.id})">x</span>
+      </div>`
+    ).join('');
+  }
+
+  // ---- Drag & Drop ----
+  let dragTaskId = null;   // chip drag
+  let dragCellIdx = null;  // cell drag
+
+  function onDragStart(e, taskId) {
+    dragTaskId = taskId;
+    dragCellIdx = null;
+    e.dataTransfer.effectAllowed = 'copy';
+  }
+
+  function onCellDragStart(e, idx) {
+    dragCellIdx = idx;
+    dragTaskId = null;
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.style.opacity = '0.4';
+    setTimeout(() => { if (e.currentTarget) e.currentTarget.style.opacity = ''; }, 200);
+  }
+
+  function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+  function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+  function onDrop(e, idx) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+
+    // Case 1: chip → cell (기존 작업 배정)
+    if (dragTaskId !== null) {
+      const task = tasks.find(t => t.id === dragTaskId);
+      if (!task) return;
+      for (let i = 0; i < task.blocks && (idx + i) < timeline.length; i++) {
+        timeline[idx + i].taskId = task.id;
+        timeline[idx + i].done = false;
+      }
+      dragTaskId = null;
+      renderTimeline(); updateStats(); saveState();
+      notify(`"${task.name}" → ${timeline[idx].time} 배정`, 'success');
+      return;
+    }
+
+    // Case 2: cell → cell (셀 이동)
+    if (dragCellIdx !== null && dragCellIdx !== idx) {
+      const src = timeline[dragCellIdx];
+      const dst = timeline[idx];
+
+      // 스왑: 양쪽 다 내용이 있으면 교환, 한쪽이 비면 이동
+      const srcId = src.taskId, srcDone = src.done;
+      const dstId = dst.taskId, dstDone = dst.done;
+
+      timeline[idx].taskId = srcId;
+      timeline[idx].done = srcDone;
+      timeline[dragCellIdx].taskId = dstId;
+      timeline[dragCellIdx].done = dstDone;
+
+      const srcName = srcId === 'break' ? '휴식' : (tasks.find(t => t.id === srcId)?.name || '');
+      dragCellIdx = null;
+      renderTimeline(); updateStats(); saveState();
+      notify(`${srcName} → ${timeline[idx].time} 이동`, 'success');
+      return;
+    }
+
+    dragTaskId = null;
+    dragCellIdx = null;
+  }
+
+  // ---- Assign Modal ----
+  function openModal(idx) {
+    selectedBlockIndex = idx;
+    const block = timeline[idx];
+    const task = block.taskId !== null && block.taskId !== 'break' ? tasks.find(t => t.id === block.taskId) : null;
+    const isBreak = block.taskId === 'break';
+
+    document.getElementById('modal-time').textContent = block.time;
+
+    const currentEl = document.getElementById('modal-current');
+    const assignEl = document.getElementById('modal-assign-section');
+
+    if (task) {
+      // 할당된 셀 클릭
+      document.getElementById('modal-title').textContent = task.name;
+      document.getElementById('modal-current-name').textContent = task.name;
+      document.getElementById('modal-current-info').textContent =
+        `${task.blocks}블록 (${task.blocks * 5}분) | ${block.done ? '완료됨' : '진행 중'}`;
+      document.getElementById('modal-done-btn').textContent = block.done ? '완료 해제' : '완료 처리';
+      currentEl.style.display = 'block';
+      document.getElementById('modal-assign-label').textContent = '다른 작업으로 변경';
+    } else if (isBreak) {
+      document.getElementById('modal-title').textContent = '휴식';
+      document.getElementById('modal-current-name').textContent = '휴식';
+      document.getElementById('modal-current-info').textContent = '휴식 블록';
+      document.getElementById('modal-done-btn').style.display = 'none';
+      currentEl.style.display = 'block';
+      document.getElementById('modal-assign-label').textContent = '작업으로 변경';
+    } else {
+      // 빈 셀 클릭
+      document.getElementById('modal-title').textContent = '작업 배정';
+      currentEl.style.display = 'none';
+      document.getElementById('modal-assign-label').textContent = '작업 선택';
+    }
+
+    const list = document.getElementById('modal-tasks');
+    list.innerHTML = tasks.map(t => `
+      <li onclick="assignTask(${t.id})">
+        <span class="priority-dot priority-${t.priority}" style="display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:8px"></span>
+        ${t.name} (${t.blocks}블록)
+      </li>`).join('');
+
+    document.getElementById('modal-overlay').classList.add('show');
+    document.getElementById('modal-done-btn').style.display = '';
+    const nameInput = document.getElementById('modal-task-name');
+    if (nameInput) nameInput.value = '';
+  }
+
+  function toggleDoneFromModal() {
+    if (selectedBlockIndex === null) return;
+    timeline[selectedBlockIndex].done = !timeline[selectedBlockIndex].done;
+    closeModal(); renderTimeline(); updateStats(); saveState();
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('modal-overlay').classList.remove('show');
+    selectedBlockIndex = null;
+  }
+
+  function assignTask(taskId) {
+    if (selectedBlockIndex === null) return;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    for (let i = 0; i < task.blocks && (selectedBlockIndex + i) < timeline.length; i++) {
+      timeline[selectedBlockIndex + i].taskId = task.id;
+      timeline[selectedBlockIndex + i].done = false;
+    }
+    closeModal(); renderTimeline(); updateStats(); saveState();
+  }
+
+  function assignBreak() {
+    if (selectedBlockIndex === null) return;
+    timeline[selectedBlockIndex].taskId = 'break';
+    timeline[selectedBlockIndex].done = false;
+    closeModal(); renderTimeline(); updateStats(); saveState();
+  }
+
+  function clearBlock() {
+    if (selectedBlockIndex === null) return;
+    timeline[selectedBlockIndex].taskId = null;
+    timeline[selectedBlockIndex].done = false;
+    closeModal(); renderTimeline(); updateStats(); saveState();
+  }
+
+  function addAndAssign() {
+    if (selectedBlockIndex === null) return;
+    const nameEl = document.getElementById('modal-task-name');
+    const blocksEl = document.getElementById('modal-task-blocks');
+    const priorityEl = document.getElementById('modal-task-priority');
+    const name = nameEl.value.trim();
+    if (!name) return;
+
+    colorCounter = (colorCounter % COLORS) + 1;
+    const newTask = { id: ++taskIdCounter, name, blocks: parseInt(blocksEl.value) || 1, priority: priorityEl.value, color: colorCounter };
+    tasks.push(newTask);
+
+    for (let i = 0; i < newTask.blocks && (selectedBlockIndex + i) < timeline.length; i++) {
+      timeline[selectedBlockIndex + i].taskId = newTask.id;
+      timeline[selectedBlockIndex + i].done = false;
+    }
+
+    nameEl.value = '';
+    blocksEl.value = 1;
+    closeModal(); renderTimeline(); renderTasks(); renderChips(); updateStats(); saveState();
+    notify(`"${name}" 추가 + ${timeline[selectedBlockIndex]?.time || ''} 배정`, 'success');
+  }
+
+  // ---- Add Task Modal ----
+  function openAddModal() {
+    document.getElementById('add-modal-overlay').classList.add('show');
+    document.getElementById('task-name').focus();
+  }
+
+  function closeAddModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('add-modal-overlay').classList.remove('show');
+  }
+
+  // ---- Auto-assign ----
+  function autoAssign() {
+    const order = { high: 0, medium: 1, low: 2 };
+    const sorted = [...tasks].sort((a, b) => order[a.priority] - order[b.priority]);
+    let ptr = 0;
+    for (const task of sorted) {
+      let assigned = 0;
+      while (assigned < task.blocks && ptr < timeline.length) {
+        if (timeline[ptr].taskId === null) { timeline[ptr].taskId = task.id; assigned++; }
+        ptr++;
+      }
+    }
+    renderTimeline(); updateStats(); saveState();
+    notify('우선순위 순으로 자동 배정 완료', 'success');
+  }
+
+  // ---- Breaks ----
+  function addBreakBlocks() {
+    const interval = 24, breakLen = 2;
+    let count = 0;
+    for (let i = interval; i < timeline.length; i += interval + breakLen) {
+      for (let j = 0; j < breakLen && (i + j) < timeline.length; j++) {
+        if (timeline[i + j].taskId === null) { timeline[i + j].taskId = 'break'; count++; }
+      }
+    }
+    renderTimeline(); updateStats(); saveState();
+    if (count > 0) notify(`휴식 블록 ${count}개 추가`, 'success');
+    else notify('추가할 빈 휴식 자리가 없습니다', 'warning');
+  }
+
+  function clearAllBreaks() {
+    let count = 0;
+    timeline.forEach(b => { if (b.taskId === 'break') { b.taskId = null; b.done = false; count++; } });
+    renderTimeline(); updateStats(); saveState();
+    notify(`휴식 블록 ${count}개 제거`, 'success');
+  }
+
+  // ---- Stats ----
+  function updateStats() {
+    const total = timeline.length;
+    const assigned = timeline.filter(b => b.taskId !== null).length;
+    const done = timeline.filter(b => b.done).length;
+    const progress = assigned > 0 ? Math.round((done / assigned) * 100) : 0;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-assigned').textContent = assigned;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-progress').textContent = progress + '%';
+    document.getElementById('progress-fill').style.width = progress + '%';
+  }
+
+  // ---- Clock ----
+  function startClock() {
+    function tick() {
+      document.getElementById('stat-clock').textContent =
+        new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    tick(); setInterval(tick, 1000);
+  }
+
+  // ---- Persistence ----
+  function saveState() {
+    localStorage.setItem('timebox-state', JSON.stringify({ tasks, timeline, taskIdCounter, colorCounter }));
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem('timebox-state');
+    if (!raw) return;
+    try {
+      const s = JSON.parse(raw);
+      tasks = s.tasks || []; timeline = s.timeline || [];
+      taskIdCounter = s.taskIdCounter || 0; colorCounter = s.colorCounter || 0;
+      if (timeline.length > 0) {
+        document.getElementById('start-hour').value = parseInt(timeline[0].time.split(':')[0]);
+        document.getElementById('total-hours').value = Math.ceil(timeline.length / 12);
+      }
+    } catch (e) {}
+  }
+
+  function clearAll() {
+    if (!confirm('모든 작업과 타임라인을 초기화할까요?')) return;
+    tasks = []; timeline = []; taskIdCounter = 0; colorCounter = 0;
+    localStorage.removeItem('timebox-state');
+    rebuildTimeline(); renderTasks(); renderChips(); updateStats();
+  }
+
+  // ---- Notification ----
+  function notify(msg, type) {
+    const el = document.getElementById('notification');
+    el.textContent = msg;
+    el.className = `notification ${type}`;
+    setTimeout(() => el.classList.add('show'), 10);
+    setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ---- Example ----
+  function loadExample() {
+    if ((tasks.length > 0 || timeline.some(b => b.taskId !== null)) && !confirm('현재 작업을 지우고 예시를 불러올까요?')) return;
+
+    // 기존 타임라인 완전 초기화 후 다시 빌드
+    timeline = [];
+    tasks = [
+      { id: 1, name: '레포 구조 정리', blocks: 12, priority: 'high', color: 1 },
+      { id: 2, name: 'agent-eval LLM Judge', blocks: 18, priority: 'high', color: 2 },
+      { id: 3, name: '트레이스 평가 분석', blocks: 8, priority: 'high', color: 3 },
+      { id: 4, name: 'voice-ai 리팩토링', blocks: 10, priority: 'medium', color: 4 },
+      { id: 5, name: '타임박싱 웹앱', blocks: 12, priority: 'medium', color: 5 },
+      { id: 6, name: 'E2E 테스트', blocks: 6, priority: 'medium', color: 6 },
+      { id: 7, name: '점심', blocks: 6, priority: 'low', color: 7 },
+      { id: 8, name: '저녁', blocks: 4, priority: 'low', color: 8 },
+      { id: 9, name: '커밋/핸드오프', blocks: 4, priority: 'medium', color: 1 },
+    ];
+    taskIdCounter = 9; colorCounter = 1;
+    document.getElementById('start-hour').value = 8;
+    document.getElementById('total-hours').value = 18;
+    rebuildTimeline();
+
+    function place(tid, t, n) { const i = timeline.findIndex(b => b.time === t); if (i < 0) return; for (let j = 0; j < n && (i+j) < timeline.length; j++) timeline[i+j].taskId = tid; }
+    function brk(t) { timeline.forEach(b => { if (b.time === t) b.taskId = 'break'; }); }
+
+    // 08시: 레포 정리 (1시간)
+    place(1,'08:00',12);
+    // 09시: LLM Judge 전반 (1시간)
+    place(2,'09:00',12);
+    // 10시: 휴식(10분) + LLM Judge 후반(30분) + 트레이스 분석 전반(20분)
+    brk('10:00'); brk('10:05');
+    place(2,'10:10',6);
+    place(3,'10:40',4);
+    // 11시: 트레이스 분석 후반(20분) + 점심(30분)
+    place(3,'11:00',4);
+    place(7,'11:20',6);
+    // 11:50-12:00 여유
+    // 12시: 휴식(10분) + voice-ai 리팩토링(50분)
+    brk('12:00'); brk('12:05');
+    place(4,'12:10',10);
+    // 13시: 타임박싱 웹앱 (1시간)
+    place(5,'13:00',12);
+    // 14시: 휴식(10분) + E2E 테스트(30분) + 저녁(20분)
+    brk('14:00'); brk('14:05');
+    place(6,'14:10',6);
+    place(8,'14:40',4);
+    // 15시: 커밋/핸드오프 (20분)
+    place(9,'15:00',4);
+
+    const nowStr = getCurrentTime();
+    timeline.forEach(b => { if (b.time < nowStr && b.taskId !== null) b.done = true; });
+
+    renderTimeline(); renderTasks(); renderChips(); updateStats(); saveState();
+    notify('3/30 작업 예시 불러옴', 'success');
+  }
+
+  init();
+</script>
+</body>
+</html>
