@@ -3,3 +3,7 @@ node_modules/
 *.log
 progress.txt
 tests.json
+__pycache__/
+*.pyc
+.venv/
+uv.lock
