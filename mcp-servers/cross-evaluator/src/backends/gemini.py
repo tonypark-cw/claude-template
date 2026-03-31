@@ -1,4 +1,4 @@
-# Google Gemini backend wrapper for evaluation calls
+# Google Gemini backend wrapper using google-genai SDK (new)
 import asyncio
 import os
 
@@ -13,21 +13,18 @@ async def call_gemini(prompt: str, max_tokens: int = 2000) -> dict:
         )
 
     try:
-        import google.generativeai as genai
+        from google import genai
     except ImportError:
-        raise RuntimeError("google-generativeai is not installed. Run: uv sync")
+        raise RuntimeError("google-genai is not installed. Run: uv add google-genai")
 
-    genai.configure(api_key=api_key)
-    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
-    model = genai.GenerativeModel(model_name)
+    client = genai.Client(api_key=api_key)
+    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
     response = await asyncio.to_thread(
-        model.generate_content,
-        prompt,
-        generation_config=genai.GenerationConfig(
-            max_output_tokens=max_tokens,
-            response_mime_type="application/json",
-        ),
+        client.models.generate_content,
+        model=model_name,
+        contents=prompt,
+        config={"max_output_tokens": max_tokens, "response_mime_type": "application/json"},
     )
 
     usage = response.usage_metadata

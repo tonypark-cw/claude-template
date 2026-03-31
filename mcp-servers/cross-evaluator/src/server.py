@@ -2,6 +2,7 @@
 from mcp.server.fastmcp import FastMCP
 
 from .tools import run_cross_evaluate, run_estimate_cost, run_list_available_models
+from .tools import run_debate_send
 
 mcp = FastMCP("cross-evaluator")
 
@@ -56,6 +57,27 @@ async def list_available_models() -> str:
         JSON with gemini and openai availability, model names, and pricing.
     """
     return await run_list_available_models()
+
+
+@mcp.tool()
+async def debate_send(
+    message: str,
+    role: str = "architect",
+    model: str = "gemini",
+    max_output_tokens: int = 4000,
+) -> str:
+    """Send a message to an external AI for debate (design/review).
+
+    Args:
+        message: The full prompt to send (design request, review request, etc.)
+        role: Role for the external AI — 'architect' or 'reviewer'. Default: 'architect'.
+        model: Backend — 'gemini' or 'openai'. Default: 'gemini'.
+        max_output_tokens: Max response length. Default: 4000.
+
+    Returns:
+        The external AI's response text.
+    """
+    return await run_debate_send(message, role, model, max_output_tokens)
 
 
 def main() -> None:

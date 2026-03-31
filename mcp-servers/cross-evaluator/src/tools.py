@@ -54,6 +54,24 @@ async def run_estimate_cost(code_context: str, rubric_markdown: str, model: str)
     return json.dumps(result.model_dump())
 
 
+ROLE_PROMPTS = {
+    "architect": "당신은 시니어 소프트웨어 아키텍트입니다. 한국어로 답변하세요.",
+    "reviewer": "당신은 시니어 코드 리뷰어입니다. 한국어로 답변하세요.",
+}
+
+
+async def run_debate_send(
+    message: str, role: str, model: str, max_output_tokens: int
+) -> str:
+    system = ROLE_PROMPTS.get(role, ROLE_PROMPTS["architect"])
+    full_prompt = f"{system}\n\n{message}"
+    try:
+        result = await _call_backend(model, full_prompt, max_output_tokens)
+        return result["text"]
+    except Exception as exc:
+        return json.dumps({"error": str(exc), "model": model})
+
+
 async def run_list_available_models() -> str:
     def _info(key_env: str, model_env: str, backend: str) -> ModelInfo:
         return ModelInfo(
