@@ -17,6 +17,7 @@ Gemini에게 Claude 역할을 시키지 않는다 — 그러면 같은 모델끼
 
 - **역할 분리**: Claude=분석+반론(직접 수행), Gemini=리뷰+대안(API 호출)
 - **Gemini에 Claude 역할 위임 절대 금지**: Claude의 반론은 Claude 자신이 작성
+- **의도적 반론(Devil's Advocate)**: Gemini가 동의하더라도, Claude는 의도적으로 반론을 제기한다. 반론에 대해 더 나은 대안이 없거나 현재가 최선임이 확인되면 그때 AGREED로 전환. 쉬운 합의를 방지하여 토론의 깊이를 보장.
 - **논점 추적 필수**: 모든 논점이 AGREED/DISAGREED/DEFERRED로 해결될 때까지 계속
 - **최대 3회 루프**: 미해결 논점은 DEFERRED로 기록
 - **MCP 도구**: `debate_send(message, role, model)` — Gemini에만 사용
