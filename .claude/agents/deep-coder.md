@@ -5,6 +5,7 @@ model: opus
 effort: high
 maxTurns: 40
 tools: Read, Grep, Glob, Bash, Edit, Write
+isolation: worktree
 ---
 
 You are a senior developer. You code **correctly**, not just quickly.

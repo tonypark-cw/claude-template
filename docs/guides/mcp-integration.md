@@ -157,6 +157,31 @@ tokens.ts / Component.tsx 파일로 저장
 
 ---
 
+### 21st.dev Magic MCP (UI 컴포넌트 생성)
+
+자연어로 React 컴포넌트를 생성한다. "v0 in your IDE" 컨셉. 커뮤니티 컴포넌트 라이브러리에 즉시 접근 가능.
+
+| 항목 | 내용 |
+|------|------|
+| 저장소 | github.com/21st-dev/magic-mcp |
+| 기능 | 자연어 → React 컴포넌트 생성, 커뮤니티 라이브러리 즉시 활용 |
+| 인증 | 21st.dev API 키 필요 (유료) |
+
+```bash
+npx @21st-dev/cli@latest install claude --api-key YOUR_API_KEY
+```
+
+사용 예시:
+
+```
+"히어로 섹션 컴포넌트 만들어줘, 그라데이션 배경에 CTA 버튼 포함"
+"카드 그리드 레이아웃 컴포넌트 생성해줘, 반응형으로"
+```
+
+shadcn이 **기존 컴포넌트 설치**라면, Magic MCP는 **새 컴포넌트 생성**에 강하다. 둘을 함께 쓰면 설치+생성 모두 커버.
+
+---
+
 ### shadcn/ui MCP (shadcn 공식)
 
 shadcn 컴포넌트 레지스트리에 직접 접근해 검색·설치를 자동화한다.
@@ -278,7 +303,7 @@ claude mcp add --transport http stripe https://mcp.stripe.com/
 
 | 프로젝트 타입 | 추천 MCP | 각 역할 |
 |-------------|----------|---------|
-| React 웹앱 | shadcn + Playwright + Figma | 컴포넌트 + E2E 테스트 + 디자인 동기화 |
+| React 웹앱 | Magic + shadcn + Playwright + Figma | 생성 + 설치 + 테스트 + 디자인 |
 | Full-stack (Supabase) | shadcn + Supabase + Playwright | UI + DB 쿼리 + 통합 테스트 |
 | SaaS + 결제 | shadcn + Stripe + Supabase | UI + 결제 + DB |
 | 오픈소스 프로젝트 | GitHub + Playwright | PR 관리 + E2E 테스트 |
