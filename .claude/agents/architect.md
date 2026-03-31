@@ -5,6 +5,7 @@ model: opus
 effort: max
 maxTurns: 30
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
+memory: project
 ---
 
 You are a senior software architect.

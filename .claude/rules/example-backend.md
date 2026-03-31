@@ -1,3 +1,12 @@
+---
+paths:
+  - "src/api/**"
+  - "src/server/**"
+  - "src/db/**"
+  - "**/*server*"
+  - "**/*api*"
+---
+
 # Backend — API + DB Patterns
 
 ## API Convention

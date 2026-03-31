@@ -1,5 +1,11 @@
 # CLAUDE.md - Project Rules
 
+<!--
+  관리자 노트: 이 파일은 프로젝트 시작 시 자동 로드됩니다.
+  상세 가이드는 @docs/guides/ 에서 필요 시 참조하세요.
+  HTML 주석은 Claude 컨텍스트에서 자동 제거되어 토큰을 소비하지 않습니다.
+-->
+
 ## Grand Principles
 
 ### 1. Ask Before Acting
@@ -150,3 +156,14 @@ Example rules files in `.claude/rules/`:
 - **해야할 일**: next actionable items, concise
 - **Context recovery**: if current session context is unclear, read recent session `.jsonl` files from `~/.claude/projects/*/` to reconstruct what was done
 - Newest entry on top, one entry per day
+
+## Built-in Skills (Claude Code 내장)
+
+다음 스킬은 Claude Code에 이미 내장되어 있습니다. 별도 설치 불필요.
+
+| 스킬 | 용도 |
+|------|------|
+| `/batch <instruction>` | 코드베이스 대규모 변경을 병렬 에이전트+worktree로 분해 실행 |
+| `/simplify [focus]` | 병렬 3개 에이전트로 코드 품질 리뷰+수정 |
+| `/loop [interval] <prompt>` | 반복 스케줄 실행 |
+| `/debug [description]` | 세션 디버그 로그 활성화+분석 |

@@ -1,3 +1,12 @@
+---
+paths:
+  - "src/components/**"
+  - "src/pages/**"
+  - "src/app/**"
+  - "**/*.tsx"
+  - "**/*.jsx"
+---
+
 # Frontend — Component Patterns
 
 ## Component Structure
