@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "cross-evaluator": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "mcp-servers/cross-evaluator",
+        "python",
+        "-m",
+        "src.server"
+      ],
+      "env": {
+        "GOOGLE_GEMINI_API_KEY": "${GOOGLE_GEMINI_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "MAX_INPUT_TOKENS": "8000",
+        "PYTHONUNBUFFERED": "1"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--user-data-dir",
+        "${HOME}/.playwright/gemini-debate-profile"
+      ]
+    }
+  }
+}
