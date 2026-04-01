@@ -5,57 +5,69 @@ model: sonnet
 effort: low
 ---
 
-# Handoff — 세션/에이전트 컨텍스트 전달
+# Handoff — Session/Agent Context Transfer
 
-현재 작업 상태를 `.claude/context/handoff.md`에 기록.
-다음 세션/서브에이전트는 이 파일 하나만 읽으면 컨텍스트 복원.
+Record current state to `.claude/context/handoff.md`.
+Next session/subagent reads this single file to restore context.
 
-## 문서 형식 (20줄 이하)
+## PARA Document Format (30 lines max)
 
 ```markdown
-# Handoff — {날짜}
+# Handoff — {date}
 
-## 무엇을 했는가
-- {완료 작업 1줄 요약}
+## Projects (Active)
+Current active work. Resume immediately in next session.
 
-## 현재 상태
-- 브랜치: {branch}
-- 커밋 안 된 변경: {N}개 파일
-- 배포: {됨/안됨}
+### {project/module}
+- **Status**: {1-line summary}
+- **Branch**: {branch}
+- **Uncommitted**: {N} files
+- **Next**:
+  - [ ] {action 1}
+  - [ ] {action 2}
+- **Read**: {path1}, {path2}
 
-## 다음에 할 것
-- [ ] {다음 작업}
+## Areas (Ongoing)
+Infrastructure/state that persists across sessions.
 
-## 관련 파일 (이것만 읽으면 됨)
-- {CLAUDE.md 경로}
-- {핵심 변경 파일 경로}
+| Item | Status | Note |
+|------|--------|------|
+| {server/service} | {status} | {note} |
 
-## 주의사항
-- {알아야 할 것}
+## Resources (Reusable)
+Decisions/facts referenced repeatedly. Avoid re-researching each session.
+
+- {decision/fact}: {summary} (source: {rules file or date})
+
+## Archive (Done/Deferred)
+Completed or deferred items from this session.
+
+- [x] {completed task}
+- [~] {deferred task} — reason: {why}
 ```
 
-## 사용 패턴
+## Usage Patterns
 
-### 패턴 1: 세션 전환
+### Pattern 1: Session Switch
 ```
-세션 A 종료: /handoff → handoff.md 생성
-세션 B 시작: "handoff.md 읽고 이어서 해줘"
-```
-
-### 패턴 2: 서브에이전트 위임
-```
-메인: handoff-{project}.md 생성
-Agent(prompt="Read .claude/context/handoff-{project}.md and do X")
+Session A end: /handoff → handoff.md generated
+Session B start: "Read handoff.md and continue"
 ```
 
-### 패턴 3: 팀 에이전트 간 전달
+### Pattern 2: Subagent Delegation
 ```
-리뷰어 완료 → handoff-review.md
-QA에게: "리뷰 결과 읽고 테스트해"
+Main: create handoff-{module}.md
+Agent(prompt="Read .claude/context/handoff-{module}.md and do X")
 ```
 
-## 원칙
-1. **20줄 이하** — 짧을수록 좋음
-2. **self-contained** — 다른 문서 없이 작업 시작 가능
-3. **action-oriented** — "다음에 뭘 할지"가 핵심
-4. **파일 경로 필수** — 추상적 설명 대신 "이 파일을 읽어"
+### Pattern 3: Team Agent Handover
+```
+Reviewer done → handoff-review.md
+QA receives: "Read review results and test"
+```
+
+## Principles
+1. **30 lines max** — PARA 4 sections combined. Use file paths instead of descriptions
+2. **Self-contained** — Start work with no other docs needed
+3. **Action-oriented** — "What to do next" matters more than "what was done"
+4. **File paths required** — "Read this file" instead of abstract descriptions
