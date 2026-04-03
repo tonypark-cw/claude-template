@@ -57,7 +57,23 @@ if (snapshot) {
   if (body) sections.push(`[Last Compact Snapshot]\n${body}`);
 }
 
-// 4. Handoff (lowest priority — truncated last)
+// 4. Repeated failure patterns (from failure-log.jsonl)
+const failLogPath = path.join(projectRoot, '.claude', 'context', 'failure-log.jsonl');
+try {
+  if (fs.existsSync(failLogPath)) {
+    const lines = fs.readFileSync(failLogPath, 'utf8').trim().split('\n').filter(Boolean);
+    const repeated = lines.map(l => { try { return JSON.parse(l); } catch { return null; } })
+      .filter(e => e && e.count >= 3)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    if (repeated.length > 0) {
+      const items = repeated.map(e => `  - ${e.tool}: "${e.error.slice(0, 80)}" (${e.count}x)`).join('\n');
+      sections.push(`[Repeated Failures — consider adding rules/hooks]\n${items}`);
+    }
+  }
+} catch {}
+
+// 5. Handoff (lowest priority — truncated last)
 const handoffPath = path.join(projectRoot, '.claude', 'context', 'handoff.md');
 const handoff = readFileSafe(handoffPath, BUDGET.handoff);
 if (handoff) {
