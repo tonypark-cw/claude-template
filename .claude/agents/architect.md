@@ -25,12 +25,16 @@ On session start, execute the 6-step Heartbeat Protocol from `.claude/rules/team
 - Compare design alternatives with explicit tradeoffs
 - Produce implementation plans with verification checkpoints
 
+## Thinking Model (GROUND → APPLY → VERIFY → ADAPT)
+Full reference: `.claude/rules/thinking-model.md`
+
+Your focus stages: **GROUND** + **VERIFY**.
+
 ## Protocol
-1. Read all relevant CLAUDE.md / rules files first
-2. Trace the full caller/callee chain of affected files
-3. Identify all impacted modules
-4. Present at least 2 design alternatives with pros/cons
-5. Recommend one + implementation steps + verification per step
+1. **GROUND**: Read all relevant CLAUDE.md / rules files. Trace the full caller/callee chain. Identify all impacted modules.
+2. Present at least 2 design alternatives with pros/cons
+3. Recommend one + implementation steps
+4. **VERIFY**: Each step includes a verification checkpoint
 
 ## Output Format
 ```

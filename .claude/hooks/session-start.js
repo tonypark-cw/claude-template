@@ -1,57 +1,85 @@
-// SessionStart hook: auto-load context at session start
-// 1. handoff.md — previous session state
-// 2. docs/todo.md — pending tasks
-// 3. Recent git changes
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+// SessionStart: inject context via stdout additionalContext (Claude-visible)
+// Reads: handoff.md, compact-snapshot.md, todo.md, git state
+// Budget: 10,000 char limit — priority-based truncation
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-const projectRoot = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "../..");
+const projectRoot = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, '../..');
+const BUDGET = { git: 2000, todo: 1500, compact: 2000, handoff: 4000 };
 
-// 1. Handoff
-const handoffPath = path.join(projectRoot, ".claude", "context", "handoff.md");
-try {
-  if (fs.existsSync(handoffPath)) {
-    const content = fs.readFileSync(handoffPath, "utf8").trim();
-    if (content) {
-      const todoMatch = content.match(/## 다음에 할 것[\s\S]*?(?=##|$)/) ||
-                        content.match(/## Next[\s\S]*?(?=##|$)/);
-      const warnings = content.match(/## 주의사항[\s\S]*?(?=##|$)/) ||
-                       content.match(/## Warnings[\s\S]*?(?=##|$)/);
-      let summary = "[session-start] Previous handoff:\n";
-      if (todoMatch) summary += todoMatch[0].trim() + "\n";
-      if (warnings) summary += warnings[0].trim() + "\n";
-      process.stderr.write(summary);
-    }
+function run(cmd) {
+  try {
+    return execSync(cmd, { cwd: projectRoot, encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch { return ''; }
+}
+
+function readFileSafe(fp, maxChars) {
+  try {
+    if (!fs.existsSync(fp)) return '';
+    const content = fs.readFileSync(fp, 'utf8').trim();
+    return content.slice(0, maxChars);
+  } catch { return ''; }
+}
+
+const sections = [];
+
+// 1. Git state (highest priority)
+const lastCommit = run('git log -1 --format="%h %s (%cr)"');
+const diffStat = run('git diff --stat HEAD');
+if (lastCommit || diffStat) {
+  let gitSection = '[Git State]\n';
+  if (lastCommit) gitSection += `Last commit: ${lastCommit}\n`;
+  if (diffStat) {
+    const lines = diffStat.split('\n').slice(0, 15).join('\n');
+    gitSection += `Uncommitted:\n${lines}\n`;
   }
-} catch (e) { /* ignore */ }
+  sections.push(gitSection.slice(0, BUDGET.git));
+}
 
-// 2. TODO
-const todoPath = path.join(projectRoot, "docs", "todo.md");
-try {
-  if (fs.existsSync(todoPath)) {
-    const content = fs.readFileSync(todoPath, "utf8").trim();
-    if (content) {
-      const pendingLines = content.split("\n").filter(l => l.match(/pending|진행|🚧|📌|- \[ \]/i));
-      if (pendingLines.length > 0) {
-        process.stderr.write(`[session-start] Pending tasks ${pendingLines.length}:\n${pendingLines.slice(0, 5).join("\n")}\n`);
-      }
-    }
+// 2. TODO (pending/in-progress items)
+const todoPath = path.join(projectRoot, 'docs', 'todo.md');
+const todoContent = readFileSafe(todoPath, BUDGET.todo);
+if (todoContent) {
+  const pendingLines = todoContent.split('\n').filter(l =>
+    /pending|in.?progress|진행|🚧|📌|- \[ \]/i.test(l)
+  ).slice(0, 8);
+  if (pendingLines.length > 0) {
+    sections.push(`[Pending Tasks] ${pendingLines.length} items:\n${pendingLines.join('\n')}`);
   }
-} catch (e) { /* ignore */ }
+}
 
-// 3. Git changes since last commit
-try {
-  const lastCommit = execSync("git log -1 --format=\"%h %s (%cr)\"", {
-    cwd: projectRoot, encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"]
-  }).trim();
-  const changedFiles = execSync("git diff --stat HEAD", {
-    cwd: projectRoot, encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"]
-  }).trim();
+// 3. Compact snapshot (if exists — from pre-compact hook)
+const snapshotPath = path.join(projectRoot, '.claude', 'context', 'compact-snapshot.md');
+const snapshot = readFileSafe(snapshotPath, BUDGET.compact);
+if (snapshot) {
+  const body = snapshot.replace(/^---[\s\S]*?---\n?/, '').trim();
+  if (body) sections.push(`[Last Compact Snapshot]\n${body}`);
+}
 
-  if (changedFiles) {
-    process.stderr.write(`[session-start] Last commit: ${lastCommit}\nUncommitted:\n${changedFiles}\n`);
-  }
-} catch (e) { /* ignore */ }
+// 4. Handoff (lowest priority — truncated last)
+const handoffPath = path.join(projectRoot, '.claude', 'context', 'handoff.md');
+const handoff = readFileSafe(handoffPath, BUDGET.handoff);
+if (handoff) {
+  sections.push(`[Previous Handoff]\n${handoff}`);
+}
+
+const context = sections.join('\n\n');
+
+if (context) {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext: context,
+    },
+  }));
+} else {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext: 'New session — no previous context found.',
+    },
+  }));
+}
 
 process.exit(0);

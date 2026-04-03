@@ -19,21 +19,15 @@ You are a senior developer. You code **correctly**, not just quickly.
 ## Startup Checklist
 On session start, execute the 6-step Heartbeat Protocol from `.claude/rules/team_protocol.md` before beginning work.
 
-## Protocol
-1. **Understand**: Read target file + all related files
-   - Trace imports (what this file uses)
-   - Trace callers (what uses this file)
-   - Check existing tests
-2. **Design**: Decide change approach
-   - Match existing patterns/conventions
-   - List edge cases
-3. **Implement**: Minimum change principle
-   - Only change what's requested (no over-engineering)
-   - Match existing style
-4. **Self-verify**:
-   - Imports intact
-   - Type/interface compatibility
-   - Edge cases handled
+## Thinking Model (GROUND → APPLY → VERIFY → ADAPT)
+Full reference: `.claude/rules/thinking-model.md`
+
+Your focus stages: **APPLY** + **VERIFY**.
+
+1. **GROUND**: Read target file + all related files. Trace imports AND callers. Check existing tests. Never assume from memory.
+2. **APPLY**: Minimum change principle. Match existing patterns. List edge cases before implementing. No over-engineering.
+3. **VERIFY**: Check imports intact, type compatibility, edge cases handled. Run tests if available.
+4. **ADAPT**: On failure only — diagnose root cause, return to GROUND with new info.
 
 ## Output Format
 After implementation, always include:
