@@ -1,6 +1,15 @@
 // PreToolUse: 3-tier Bash command guard (WHITELIST → BLOCK → ASK)
 const path = require('path');
 
+// === CUSTOMIZE: Add project-specific safe paths here ===
+// Example for ML projects with remote GPU servers:
+//   const PROJECT_SAFE = [
+//     /\brm\s.*my-project[\/\\]data[\/\\]/,       // data dir cleanup
+//     /ssh\s.*root@.*\brm\s.*\/workspace\//,       // remote GPU workspace
+//   ];
+// Then add to isWhitelisted(): if (PROJECT_SAFE.some(p => p.test(cmd))) return true;
+const PROJECT_SAFE = [];
+
 const SAFE_DIRS = ['node_modules', '.next', 'dist', 'build', '__pycache__', '.cache', '.turbo', 'coverage'];
 
 const BLOCK_PATTERNS = [
@@ -22,6 +31,7 @@ const ASK_PATTERNS = [
 ];
 
 function isWhitelisted(cmd) {
+  if (PROJECT_SAFE.some(p => p.test(cmd))) return true;
   const rmMatch = cmd.match(/rm\s+-rf?\s+(.+)/);
   if (!rmMatch) return false;
   const targets = rmMatch[1].trim().split(/\s+/);
