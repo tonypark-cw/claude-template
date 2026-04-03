@@ -21,6 +21,11 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-gate.js\""
+          },
+          {
+            "type": "prompt",
+            "prompt": "Review whether Claude's response fully addressed the user's request. Check: (1) If code was changed, was it verified or tested? (2) Is there incomplete work that should continue? (3) Were all parts of the request addressed? If this was a documentation-only change, a simple Q&A, or no code was modified, ALLOW. Only BLOCK if code changes were made without any verification or if the request was clearly left incomplete.",
+            "timeout": 30
           }
         ]
       }
