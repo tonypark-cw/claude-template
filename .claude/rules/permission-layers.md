@@ -14,6 +14,7 @@ Hooks execute automatically. The agent cannot bypass them. Use for rules that **
 | `check-line-limit.js` | PostToolUse (Write/Edit) | BLOCK: files exceeding 80 lines |
 | `pre-compact.js` | PreCompact | Side-effect: saves state snapshot |
 | `session-start.js` | SessionStart | Side-effect: injects context via additionalContext |
+| `permission-denied-logger.js` | PermissionDenied | Side-effect: logs denied tool calls for auto-mode debugging |
 
 **When to use Layer 1**: The rule is critical AND the agent has repeatedly violated it through prompts alone, OR violation is unrecoverable (data loss, security breach).
 

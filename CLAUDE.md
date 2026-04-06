@@ -21,6 +21,13 @@ _These 7 principles apply to ALL projects using this template._
 - **Language**: [RESPONSE LANGUAGE PREFERENCE]
 - **Testing**: [Jest / Vitest / pytest / etc.]
 
+## Output Style (Token Efficiency)
+- **No sycophancy**: Never open with "Sure!", "Great question!", "Absolutely!" etc.
+- **No boilerplate closings**: No "Hope this helps", "Let me know if you have questions" etc.
+- **No prompt restating**: Don't restate what the user said
+- **No trailing summaries**: Don't re-summarize what you just did (the diff is visible)
+- **Direct answers first**: Lead with the answer/action, explain only when needed
+
 ## Communication
 
 - Respond in the user's language
@@ -39,3 +46,20 @@ _These 7 principles apply to ALL projects using this template._
 | `rules/mcp-boundaries.md` | MCP tool boundaries and selection checklist |
 | `rules/example-backend.md` | Backend patterns (template — customize) |
 | `rules/example-frontend.md` | Frontend patterns (template — customize) |
+
+## Agent Routing
+
+| Pattern | Trigger | Agents | Model Tier |
+|---------|---------|--------|------------|
+| Quick Fix | 1-2 files, clear bug | deep-coder | haiku/sonnet |
+| Feature | 3+ files, new feature | architect → Sprint Contract → deep-coder → validator | opus→sonnet |
+| Research | External info needed | researcher → fact-check → architect | sonnet |
+| Full Pipeline | Multi-module, deploy | architect → researcher → Sprint Contract → deep-coder → validator → handoff | opus |
+| Emergency | Server down, urgent | deep-coder → validator | opus→sonnet |
+
+**Common rules**:
+- **Model tiers**: Quick Fix uses haiku/sonnet for cost savings. Only Full Pipeline/Emergency use opus
+- **Explore with Haiku**: File search and code structure tasks use `subagent_type=Explore` (haiku) for cost efficiency
+- **Sprint Contract**: Feature/Full Pipeline require done-criteria negotiation before implementation (see `team_protocol.md` §E)
+- **Circuit Breaker**: Same approach fails 3x → stop and escalate to architect for alternative design (see `team_protocol.md` §D)
+- **High-risk skill enforcement**: When patterns are detected (e.g., deployment, migration, model training), relevant skills are mandatory — not optional suggestions
